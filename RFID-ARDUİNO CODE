@@ -1,0 +1,60 @@
+#include <SPI.h>
+#include <MFRC522.h>
+ 
+#define SS_PIN 10
+#define RST_PIN 9
+MFRC522 mfrc522(SS_PIN, RST_PIN);   
+ 
+void setup() 
+{
+  Serial.begin(9600);  
+  SPI.begin();      
+  mfrc522.PCD_Init();   
+  Serial.println("LÜTFEN KARTINIZI OKUTUNUZ !");
+  Serial.println();
+  pinMode(7,OUTPUT); // YEŞİL LED'İ TANIMLIYORUZ
+  pinMode(6,OUTPUT); // KIRMIZI LED'İ TANIMLIYORUZ
+
+}
+void loop() 
+{
+  
+  if ( ! mfrc522.PICC_IsNewCardPresent()) 
+  {
+    return;
+  }
+  
+  if ( ! mfrc522.PICC_ReadCardSerial()) 
+  {
+    return;
+  }
+ 
+  Serial.print("KART ID :");
+  String content= "";
+  byte letter;
+  for (byte i = 0; i < mfrc522.uid.size; i++) 
+  {
+     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+     Serial.print(mfrc522.uid.uidByte[i], HEX); // KART ID 
+     content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+     content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  Serial.println();
+  content.toUpperCase();
+  if (content.substring(1) == "AB 57 33 0B") // ID'Yİ YAZMAYI UNUTMAYIN
+  {
+    digitalWrite(7,HIGH);
+    digitalWrite(6,LOW);
+    Serial.print("GİRİŞ YAPILDI");
+    Serial.println();
+    delay(2000);
+  }
+   if (content.substring(1) == "A9 4A E1 2A") // ID'Yİ YAZMAYI UNUTMAYIN
+  {
+    digitalWrite(7,LOW);
+    digitalWrite(6,HIGH);
+     Serial.print("TANIMSIZ KART");
+    Serial.println();
+    delay(2000);
+  }
+}
